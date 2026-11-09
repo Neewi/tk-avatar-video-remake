@@ -7,8 +7,10 @@ from pathlib import Path
 import shutil
 import tempfile
 import uuid
+import sys
 
 from PIL import Image
+from gallery import render_gallery
 
 
 def project_paths(explicit=None):
@@ -102,6 +104,9 @@ def save(root, args):
                 img.load()
                 if img.format != "PNG":
                     raise ValueError(f"{key}.png 需要是真实 PNG 图片。")
+                short, long = sorted(img.size)
+                if short < 1024 or long < 1536:
+                    raise ValueError(f"{key}.png 分辨率为 {img.width}×{img.height}；请独立生成至少短边 1024、长边 1536 的高清参考图，不要放大小图或裁切低分辨率宫格入库。")
             shutil.copyfile(args.images / (key + ".png"), stage / (key + ".png"))
         record = dict(id=look_id, person=person_name, name=name,
                       identity=identity, original=new, description=args.description.strip())
@@ -117,6 +122,7 @@ def main():
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("people")
     commands.add_parser("products")
+    commands.add_parser("gallery", help="刷新 Avatar Studio 本地角色形象馆")
     publish = commands.add_parser("save-look")
     group = publish.add_mutually_exclusive_group(required=True)
     group.add_argument("--new-person")
@@ -130,6 +136,12 @@ def main():
         project, root, product_root = project_paths(args.project)
         if args.command == "people":
             value = catalog(root)
+            try:
+                render_gallery(project, value)
+            except OSError as exc:
+                print(f"角色列表已读取，形象馆刷新失败：{exc}", file=sys.stderr)
+        elif args.command == "gallery":
+            value = dict(gallery=render_gallery(project, catalog(root)))
         elif args.command == "products":
             value = products(product_root)
         else:
@@ -137,6 +149,10 @@ def main():
             with (root / ".save.lock").open("a") as lock:
                 fcntl.flock(lock, fcntl.LOCK_EX)
                 value = save(root, args)
+                try:
+                    render_gallery(project, catalog(root))
+                except OSError as exc:
+                    print(f"人物已保存，形象馆刷新失败：{exc}", file=sys.stderr)
     except (OSError, ValueError) as exc:
         parser.exit(1, f"{exc}\n")
     print(json.dumps(value, ensure_ascii=False, indent=2))

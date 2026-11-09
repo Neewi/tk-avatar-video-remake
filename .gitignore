@@ -8,3 +8,5 @@ venv/
 workspace/runs/
 workspace/.pending-*/
 workspace/.save.lock
+/Avatar Studio.html
+/Avatar Studio.html.tmp
