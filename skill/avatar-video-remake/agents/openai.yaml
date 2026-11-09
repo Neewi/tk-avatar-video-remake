@@ -1,0 +1,4 @@
+interface:
+  display_name: "数字人视频复刻"
+  short_description: "看图选数字人和造型，用自家产品复刻一版视频宫格与完整提示词"
+  default_prompt: "用 $avatar-video-remake 帮我复刻这条视频，先让我看图选数字人和造型。"

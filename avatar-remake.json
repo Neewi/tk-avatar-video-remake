@@ -1,0 +1,10 @@
+{
+  "studio": "workspace",
+  "products": "assets/products",
+  "default_sku": "T10P",
+  "generation": {
+    "platform": "Symphony",
+    "max_clip_seconds": 15,
+    "aspect_ratio": "9:16"
+  }
+}
